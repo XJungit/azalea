@@ -329,7 +329,7 @@ pub fn handle_stop_use_item_queued(
     mut commands: Commands,
     mut query: Query<(Entity, &StopUseItemQueued, &mut BlockStatePredictionHandler)>,
 ) {
-    for (entity, _, sequence_number) in query.iter_mut() {
+    for (entity, _, mut sequence_number) in query.iter_mut() {
         commands
             .entity(entity)
             .remove::<StopUseItemQueued>();
