@@ -4538,3 +4538,33 @@ name = "zmij"
 version = "1.0.21"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b8848ee67ecc8aedbaf3e4122217aff892639231befc6a1b58d29fff4c2cabaa"
+
+[[patch.unused]]
+name = "azalea"
+version = "0.16.0+mc26.2"
+source = "git+file:///D:/Craft-Agent/vendor/azalea?rev=c35b57ebf82fa8b26ada77ab9eb795e3827d6c16#c35b57ebf82fa8b26ada77ab9eb795e3827d6c16"
+
+[[patch.unused]]
+name = "azalea-client"
+version = "0.16.0+mc26.2"
+source = "git+file:///D:/Craft-Agent/vendor/azalea?rev=c35b57ebf82fa8b26ada77ab9eb795e3827d6c16#c35b57ebf82fa8b26ada77ab9eb795e3827d6c16"
+
+[[patch.unused]]
+name = "azalea-inventory"
+version = "0.16.0+mc26.2"
+source = "git+file:///D:/Craft-Agent/vendor/azalea?rev=c35b57ebf82fa8b26ada77ab9eb795e3827d6c16#c35b57ebf82fa8b26ada77ab9eb795e3827d6c16"
+
+[[patch.unused]]
+name = "azalea-protocol"
+version = "0.16.0+mc26.2"
+source = "git+file:///D:/Craft-Agent/vendor/azalea?rev=c35b57ebf82fa8b26ada77ab9eb795e3827d6c16#c35b57ebf82fa8b26ada77ab9eb795e3827d6c16"
+
+[[patch.unused]]
+name = "azalea-registry"
+version = "0.16.0+mc26.2"
+source = "git+file:///D:/Craft-Agent/vendor/azalea?rev=c35b57ebf82fa8b26ada77ab9eb795e3827d6c16#c35b57ebf82fa8b26ada77ab9eb795e3827d6c16"
+
+[[patch.unused]]
+name = "azalea-world"
+version = "0.16.0+mc26.2"
+source = "git+file:///D:/Craft-Agent/vendor/azalea?rev=c35b57ebf82fa8b26ada77ab9eb795e3827d6c16#c35b57ebf82fa8b26ada77ab9eb795e3827d6c16"

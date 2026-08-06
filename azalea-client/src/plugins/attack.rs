@@ -69,7 +69,10 @@ pub fn handle_attack_queued(
     {
         let target_entity = attack_queued.target;
         let Some(target_entity_id) = entity_id_index.get_by_ecs_entity(target_entity) else {
+            // target entity was removed (e.g. died) between queuing and processing;
+            // remove AttackQueued so we don't retry and warn every tick
             warn!("tried to attack entity {target_entity} which isn't in our EntityIdIndex");
+            commands.entity(client_entity).remove::<AttackQueued>();
             continue;
         };
 
