@@ -1,4 +1,6 @@
-use azalea_client::interact::{EntityInteractEvent, StartUseItemEvent, pick::HitResultComponent};
+use azalea_client::interact::{
+    EntityInteractEvent, StartUseItemEvent, StopUseItemEvent, pick::HitResultComponent,
+};
 use azalea_core::{hit_result::HitResult, position::BlockPos};
 use azalea_protocol::packets::game::s_interact::InteractionHand;
 use bevy_ecs::entity::Entity;
@@ -53,6 +55,18 @@ impl Client {
             entity: self.entity,
             hand: InteractionHand::MainHand,
             force_block: None,
+        });
+    }
+
+    /// Stop using the currently held item (simulate releasing the right-click).
+    ///
+    /// This is how you release an arrow from a bow, stop eating, etc. It sends
+    /// a `ServerboundPlayerAction` with [`Action::ReleaseUseItem`].
+    ///
+    /// [`Action::ReleaseUseItem`]: azalea_protocol::packets::game::s_player_action::Action::ReleaseUseItem
+    pub fn stop_use_item(&self) {
+        self.ecs.write().write_message(StopUseItemEvent {
+            entity: self.entity,
         });
     }
 }

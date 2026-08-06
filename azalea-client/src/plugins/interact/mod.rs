@@ -27,6 +27,7 @@ use azalea_physics::{
 };
 use azalea_protocol::packets::game::{
     ServerboundInteract, ServerboundUseItem, s_interact::InteractionHand,
+    s_player_action::{self, ServerboundPlayerAction},
     s_swing::ServerboundSwing, s_use_item_on::ServerboundUseItemOn,
 };
 use azalea_world::World;
@@ -50,11 +51,13 @@ pub struct InteractPlugin;
 impl Plugin for InteractPlugin {
     fn build(&self, app: &mut App) {
         app.add_message::<StartUseItemEvent>()
+            .add_message::<StopUseItemEvent>()
             .add_systems(
                 Update,
                 (
                     update_attributes_for_gamemode,
                     handle_start_use_item_event,
+                    handle_stop_use_item_event,
                     update_hit_result_component
                         .after(clamp_look_direction)
                         .after(update_last_bounding_box),
@@ -67,7 +70,10 @@ impl Plugin for InteractPlugin {
             )
             .add_systems(
                 GameTick,
-                handle_start_use_item_queued.before(PhysicsSystems),
+                (
+                    handle_start_use_item_queued.before(PhysicsSystems),
+                    handle_stop_use_item_queued.before(PhysicsSystems),
+                ),
             )
             .add_observer(handle_entity_interact)
             .add_observer(handle_swing_arm_trigger);
@@ -289,6 +295,56 @@ pub fn handle_start_use_item_queued(
                 });
             }
         }
+    }
+}
+
+/// An event that makes one of our clients simulate releasing the right-click
+/// (stopping using the held item), which is how you shoot a bow or stop
+/// consuming food/drink.
+///
+/// This event just inserts the [`StopUseItemQueued`] component on the given
+/// entity.
+#[derive(Message)]
+pub struct StopUseItemEvent {
+    pub entity: Entity,
+}
+pub fn handle_stop_use_item_event(
+    mut commands: Commands,
+    mut events: MessageReader<StopUseItemEvent>,
+) {
+    for event in events.read() {
+        commands.entity(event.entity).insert(StopUseItemQueued);
+    }
+}
+
+/// A component that makes our client send a
+/// [`ServerboundPlayerAction`] with [`Action::ReleaseUseItem`] on the next
+/// [`GameTick`]. It's removed after that tick.
+///
+/// [`Action::ReleaseUseItem`]: azalea_protocol::packets::game::s_player_action::Action::ReleaseUseItem
+#[derive(Component, Debug, Default)]
+pub struct StopUseItemQueued;
+
+pub fn handle_stop_use_item_queued(
+    mut commands: Commands,
+    query: Query<(Entity, &StopUseItemQueued, &mut BlockStatePredictionHandler)>,
+) {
+    for (entity, _, sequence_number) in query.iter() {
+        commands
+            .entity(entity)
+            .remove::<StopUseItemQueued>();
+
+        // Vanilla sends RELEASE_USE_ITEM with the zero position and DOWN
+        // direction; the server ignores pos/direction for this action.
+        commands.trigger(SendGamePacketEvent::new(
+            entity,
+            ServerboundPlayerAction {
+                action: s_player_action::Action::ReleaseUseItem,
+                pos: BlockPos::new(0, 0, 0),
+                direction: Direction::Down,
+                seq: sequence_number.start_predicting(),
+            },
+        ));
     }
 }
 
