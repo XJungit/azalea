@@ -27,6 +27,7 @@ impl Client {
             entity: self.entity,
             hand: InteractionHand::MainHand,
             force_block: Some(position),
+            force_miss: false,
         });
     }
 
