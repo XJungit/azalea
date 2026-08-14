@@ -55,6 +55,24 @@ impl Client {
             entity: self.entity,
             hand: InteractionHand::MainHand,
             force_block: None,
+            force_miss: false,
+        });
+    }
+
+    /// Right-click the currently held item, always sending `ServerboundUseItem`
+    /// (right-click air) regardless of what we're looking at.
+    ///
+    /// This is for consuming food / drinking potions where we want the "use
+    /// item on air" path even when the bot is looking at a block (e.g. inside
+    /// caves). The regular [`Client::start_use_item`] would send
+    /// `ServerboundUseItemOn` (right-click the block) when looking at a block,
+    /// which the server rejects for consumables.
+    pub fn use_item_air(&self) {
+        self.ecs.write().write_message(StartUseItemEvent {
+            entity: self.entity,
+            hand: InteractionHand::MainHand,
+            force_block: None,
+            force_miss: true,
         });
     }
 

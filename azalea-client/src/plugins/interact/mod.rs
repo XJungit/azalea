@@ -183,6 +183,13 @@ pub struct StartUseItemEvent {
     pub hand: InteractionHand,
     /// See [`StartUseItemQueued::force_block`].
     pub force_block: Option<BlockPos>,
+    /// Force sending a [`ServerboundUseItem`] (right-click air) regardless of
+    /// the current [`HitResultComponent`]. This is useful for consuming food /
+    /// drinking potions where we always want the "use item on air" path even
+    /// when the bot is looking at a block (e.g. inside caves).
+    ///
+    /// [`ServerboundUseItem`]: azalea_protocol::packets::game::s_use_item::ServerboundUseItem
+    pub force_miss: bool,
 }
 pub fn handle_start_use_item_event(
     mut commands: Commands,
@@ -192,6 +199,7 @@ pub fn handle_start_use_item_event(
         commands.entity(event.entity).insert(StartUseItemQueued {
             hand: event.hand,
             force_block: event.force_block,
+            force_miss: event.force_miss,
         });
     }
 }
@@ -212,6 +220,8 @@ pub struct StartUseItemQueued {
     /// This is useful if you want to interact with a block without looking at
     /// it, but should be avoided to stay compatible with anticheats.
     pub force_block: Option<BlockPos>,
+    /// See [`StartUseItemEvent::force_miss`].
+    pub force_miss: bool,
 }
 #[allow(clippy::type_complexity)]
 pub fn handle_start_use_item_queued(
@@ -239,7 +249,21 @@ pub fn handle_start_use_item_queued(
 
         let mut hit_result = (**hit_result).clone();
 
-        if let Some(force_block) = start_use_item.force_block {
+        if start_use_item.force_miss {
+            // Always send ServerboundUseItem (right-click air), regardless of what
+            // we're looking at. Used for consuming food/potions where the block
+            // interaction path (UseItemOn) would be rejected by the server.
+            // The location/block_pos fields are unused when miss=true; pick a
+            // plausible point above the player.
+            hit_result = HitResult::Block(BlockHitResult {
+                location: azalea_core::position::Vec3::new(0.0, 512.0, 0.0),
+                direction: Direction::Up,
+                block_pos: BlockPos::new(0, 512, 0),
+                inside: false,
+                world_border: false,
+                miss: true,
+            });
+        } else if let Some(force_block) = start_use_item.force_block {
             let hit_result_matches = if let HitResult::Block(block_hit_result) = &hit_result {
                 block_hit_result.block_pos == force_block
             } else {
